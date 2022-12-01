@@ -1,8 +1,9 @@
-import { gql, useQuery } from "@apollo/client"
+import { useReactiveVar } from "@apollo/client"
 import { AbBotao, AbCampoTexto } from "ds-alurabooks"
 import { useState } from "react"
+import { useLivros } from "../../graphql/livros/hooks"
+import { livrosVar } from "../../graphql/livros/state"
 import { ICategoria } from "../../interfaces/ICategoria"
-import { ILivro } from "../../interfaces/ILivro"
 import CardLivro from "../CardLivro"
 
 import './ListaLivros.css'
@@ -11,38 +12,22 @@ interface ListaLivrosProps {
     categoria: ICategoria
 }
 
-const OBTER_LIVROS = gql`
-  query ObterLivros($categoriaId: Int, $titulo: String) {
-    livros(categoriaId: $categoriaId, titulo: $titulo) {
-      id
-      slug
-      titulo
-      imagemCapa
-      opcoesCompra {
-        id
-        preco
-      }
-    }
-  }
-`
-
 const ListaLivros = ({ categoria }: ListaLivrosProps) => {
 
     const [textoBusca, setTextoDaBusca] = useState('')
 
-    const { data, refetch } = useQuery<{ livros: ILivro[]}>(OBTER_LIVROS, {
-        variables: {
-            categoriaId: categoria.id
-        }
-    })
+    const livros = useReactiveVar(livrosVar);
+    console.log('livros =>', livros)
+
+    useLivros(categoria)
 
     const buscarLivros = (evento: React.FormEvent<HTMLFormElement>) => {
         evento.preventDefault()
         if (textoBusca) {
-            refetch({
-                categoriaId: categoria.id,
-                titulo: textoBusca
-            })
+            // refetch({
+            //     categoriaId: categoria.id,
+            //     titulo: textoBusca
+            // })
         }
     }
 
@@ -55,7 +40,7 @@ const ListaLivros = ({ categoria }: ListaLivrosProps) => {
             </div>
         </form>
         <div className="livros">
-            {data?.livros.map(livro => <CardLivro livro={livro} key={livro.id} />)}
+            {livros.map(livro => <CardLivro livro={livro} key={livro.id} />)}
         </div>
     </section>
 }
